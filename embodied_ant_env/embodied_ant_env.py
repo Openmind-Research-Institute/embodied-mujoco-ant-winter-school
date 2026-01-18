@@ -37,8 +37,8 @@ class ForwardTask:
         if self.previous_pos_timestamp is None:
             self.previous_pos_timestamp = pos_timestamp
 
-        # if pos_timestamp == self.previous_pos_timestamp:
-        #     print('Warning!! The frames did not update!')
+        if pos_timestamp == self.previous_pos_timestamp:
+            print('Warning!! The frames did not update!')
 
         cost_action = np.sum(np.square(self.last_action - action)) * self.action_cost_weight
         self.last_pos = pos
@@ -63,79 +63,6 @@ class ForwardTask:
             info['wz'],
         ], axis=None)
         return observation, reward, terminated, truncated
-
-class BackAndForthTask:
-    def __init__(self, action_cost_weight=0.0, radius=1.0, origin=np.array([0, 0]), use_previous_action=False):
-        self.action_cost_weight = action_cost_weight
-        self.last_pos = None
-        self.reward_direction_I = np.array([1, 0])
-        self.last_action = np.zeros(8)
-        self.use_previous_action = use_previous_action
-        self.previous_action = np.zeros(8)
-        if self.use_previous_action:
-            self.observation_space = spaces.Box(low=-1.5, high=1.5, shape=(24+8,), dtype=np.float32)
-        else:
-            self.observation_space = spaces.Box(low=-1.5, high=1.5, shape=(24,), dtype=np.float32)
-        self.radius = radius
-        self.origin = origin
-        print('BackAndForthTask initialized for radius: ', radius, 'and origin: ', origin)
-
-    def reset(self, info, action=np.zeros(8)):
-        self.last_pos = None
-        th = np.random.uniform(-np.pi, np.pi)
-        self.reward_direction_I = np.array([np.cos(th), np.sin(th)])
-        return self(info, action)
-
-    def __call__(self, info, action):
-        pos = np.array([info['current_x_position'], info['current_y_position']])
-        # Bounce back on the circle edge.
-        if np.dot(pos - self.origin, self.reward_direction_I) > 0 and np.linalg.norm(pos - self.origin) > self.radius:
-            self.reward_direction_I = self.origin - pos
-            self.reward_direction_I /= np.linalg.norm(self.reward_direction_I)
-
-        if self.last_pos is None:
-            self.last_pos = pos
-            progress = 0.0
-        else:
-            progress = np.dot(pos - self.last_pos, self.reward_direction_I)
-
-        cost_action = np.sum(np.square(self.last_action - action)) * self.action_cost_weight
-        self.last_pos = pos
-        self.last_action = action.copy()
-        terminated = False
-        truncated = False
-
-        reward = progress - cost_action
-        info['reward_direction_I'] = self.reward_direction_I
-        info['reward_direction_I_x'] = self.reward_direction_I[0]
-        info['reward_direction_I_y'] = self.reward_direction_I[1]
-
-        heading_perp = np.array([-info['heading_vector'][1], info['heading_vector'][0]])
-        reward_direction_B = np.array([np.dot(info['reward_direction_I'], info['heading_vector']),
-                             np.dot(info['reward_direction_I'], heading_perp)])
-
-        info['reward_direction_B_x'] = reward_direction_B[0]
-        info['reward_direction_B_y'] = reward_direction_B[1]
-        info['original_reward'] = reward
-        info['actions'] = action
-        observation = np.concatenate([
-            info['joint_positions'],
-            info['joint_velocities'],
-            reward_direction_B,
-            info['ax'],
-            info['ay'],
-            info['az'],
-            info['wx'],
-            info['wy'],
-            info['wz'],
-        ], axis=None)
-
-        if self.use_previous_action:
-            observation = np.concatenate([observation, self.previous_action], axis=None)
-        self.previous_action = action.copy()
-
-        return observation, reward, terminated, truncated
-
 
 class EmbodiedAnt(gym.Env):
 
@@ -262,28 +189,6 @@ class EmbodiedAnt(gym.Env):
             self.i += 1
             if self.i % 10 == 0:
                 show_image(self.vis_frame)
-        if self.render_mode == 'rgb_array':
-            if isinstance(self.task, BackAndForthTask):
-                # Draw the origin circle.
-                origin_3D_O = np.array([self.task.origin[0], self.task.origin[1], 0.0])
-                self.tracker.draw_circle(self.vis_frame,
-                                            origin_3D_O,
-                                            self.task.radius)
-                reward_direction_I = np.array([self.task.reward_direction_I[0],
-                                                self.task.reward_direction_I[1],
-                                                0.0])
-                self.tracker.draw_arrow(self.vis_frame,
-                                            origin_3D_O,
-                                            reward_direction_I)
-                r_B = np.array([info['reward_direction_B_x'],
-                                info['reward_direction_B_y'],
-                                0.0])
-                if 'body' in info['bodies']:
-                    R_B_I = info['bodies']['body']['orientation']
-                    r_I = R_B_I @ r_B
-                    self.tracker.draw_arrow(self.vis_frame,
-                                            self.last_pos,
-                                            r_I)
 
         return observation, reward, terminated, truncated, info
 
