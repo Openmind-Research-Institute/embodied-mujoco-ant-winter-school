@@ -195,6 +195,7 @@ parser.add_argument('--dt', type=float, default=0.05)
 parser.add_argument('--env_id', type=str, default='SimEmbodiedAnt')
 parser.add_argument('--capture_video', action='store_true')
 parser.add_argument('--exp_name', type=str, default='sarsa_ant_forward')
+parser.add_argument('--reward_scaling', type=float, default=10.0)
 
 args = parser.parse_args()
 SEED = args.seed
@@ -370,7 +371,7 @@ while True:
         S, _ = options_env.reset(seed=SEED)
         O = select_option_epsilon_greedy(S, EPSILON, w, T)
 
-    if nb_options >= MAX_OPTIONS_PER_TIMELIMIT_EPISODE:
+    if idx_options >= MAX_OPTIONS_PER_TIMELIMIT_EPISODE:
         logging_data["timelimit_episode"].append(idx_timelimit_episode)
         logging_data["return_per_timelimit"].append(return_per_timelimit)
         logging_data["reward_per_option"].append(R)
