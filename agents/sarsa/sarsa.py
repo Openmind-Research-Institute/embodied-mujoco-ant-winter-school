@@ -196,6 +196,7 @@ parser.add_argument('--env_id', type=str, default='SimEmbodiedAnt')
 parser.add_argument('--capture_video', action='store_true')
 parser.add_argument('--exp_name', type=str, default='sarsa_ant_forward')
 parser.add_argument('--reward_scaling', type=float, default=10.0)
+parser.add_argument('--load_weights_from_dir', type=str, default=None)
 
 args = parser.parse_args()
 SEED = args.seed
@@ -237,11 +238,10 @@ if args.hw_config is None:
         joint_config=joint_config,
         model_path=os.path.join(os.path.dirname(__file__), '../../sim/assets/embodied_mujoco_ant.xml'),
     )
-    print('args.capture_video', args.capture_video)
     if args.capture_video:
         print('RecordVideo')
         env = gym.wrappers.RecordVideo(env, os.path.join(log_dir, "videos", args.env_id),
-                                        step_trigger=lambda x: x % 10000 == 0)
+                                        step_trigger=lambda x: x % 1000 == 0)
 
 else:
     with open(args.hw_config, 'r') as f:
@@ -273,16 +273,14 @@ state_limits = np.array([env.observation_space.low, env.observation_space.high])
 num_options = len(options)
 
 # Load previous weights.
-if args.load_previous_weights == False:
+if args.load_weights_from_dir is None:
     iht = IHT(IHT_SIZE)
     w = np.zeros((num_options, iht.size), dtype=np.float32)
 else:
-    log_dir_to_load = 'logs/20250927_162143'
-    w = np.load(os.path.join(log_dir_to_load, 'weights_iht/weights_9.npy'))
-    # Load iht.
-    with open(os.path.join(log_dir_to_load, "weights_iht/iht_9.pkl"), "rb") as f:
+    w = np.load(os.path.join(args.load_weights_from_dir, 'weights_iht/weights.npy'))
+    with open(os.path.join(args.load_weights_from_dir, "weights_iht/iht.pkl"), "rb") as f:
         iht = pickle.load(f)
-    print('Loaded weights from previous run.')
+    print('Loaded weights from ', args.load_weights_from_dir)
     if args.learn == False:
         EPSILON = 0.0
 
