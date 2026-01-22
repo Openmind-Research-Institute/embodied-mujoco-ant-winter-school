@@ -1,10 +1,14 @@
-# Embodied Ant
+# Embodied MuJoCo Ant
 
 <!-- ![image info](./imgs/traj_ppo.gif) -->
 
 <p align="center">
   <img src="./imgs/traj_ppo.gif" alt="Ant walking demo" width="600"/>
 </p>
+<p align="center">
+  Video of a learned behaviour directly on hardware.
+</p>
+
 
 ## Hardware
 
