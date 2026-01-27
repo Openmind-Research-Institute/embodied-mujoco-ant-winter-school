@@ -20,11 +20,11 @@ if [ "$1" == "hw" ]; then
         --dt 0.12 \
         --seed 1 \
         --env_id HwEmbodiedAnt \
-        --hw_config ../../embodied_ant_env/ant12.json \
+        --hw_config ../../embodied_ant_env/ant1.json \
         --learning_starts 2000 \
         --task_type forward \
         --exp_name ant_forward \
-        # --weights_path ...
+        --weights_path runs/sim_learning_to_walk_with_video_forward_20260122-112812_seed_1/weights_and_args/ \
+        --eval True
         # --capture_video \
-        # --eval True
 fi
