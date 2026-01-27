@@ -39,7 +39,7 @@ if __name__ == "__main__":
     config['onboard_camera_id'] = 1
     config['camera_id'] = 0
     config['camera_fov_diagonal_deg'] = 58
-    config['camera_tag_sizes'] = {'origin': 0.1, 'body': 0.045}
+    config['camera_tag_sizes'] = {'origin': 0.11, 'body': 0.040}
     config['camera_tag_ids'] = {'origin': 0, 'body': int(tag_id)}
     with open(file_name, "w") as f:
         json.dump(config, f, indent=2)
