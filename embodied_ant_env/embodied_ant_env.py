@@ -37,8 +37,8 @@ class ForwardTask:
         if self.previous_pos_timestamp is None:
             self.previous_pos_timestamp = pos_timestamp
 
-        if pos_timestamp == self.previous_pos_timestamp:
-            print('Warning!! The frames did not update!')
+        #if pos_timestamp == self.previous_pos_timestamp:
+            #print('Warning!! The frames did not update!')
 
         cost_action = np.sum(np.square(self.last_action - action)) * self.action_cost_weight
         self.last_pos = pos
@@ -241,7 +241,7 @@ class EmbodiedAnt(gym.Env):
         # Motor outputs.
         time_start_motor_feedback = time.time()
         joint_positions, joint_velocities, joint_loads = self.motor_controller.get_feedback()
-        print('time to get motor feedback: ', time.time() - time_start_motor_feedback)
+        #print('time to get motor feedback: ', time.time() - time_start_motor_feedback)
         # temperatures = self.motor_controller.get_temperature()
         info['joint_positions'] = joint_positions
         info['joint_velocities'] = joint_velocities
